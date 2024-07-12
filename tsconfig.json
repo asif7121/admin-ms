@@ -1,0 +1,32 @@
+{
+	"compilerOptions": {
+		"skipLibCheck": true,
+		"target": "es6",
+		"module": "CommonJS",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"outDir": "build",
+		"baseUrl": "src",
+		"removeComments": true,
+		"typeRoots": ["src/@types", "node_modules/@types"],
+		"paths": {
+			"@modules/*": ["modules/*"],
+			"@models/*": ["models/*"],
+			"@config": ["core/config"],
+			"@core/*": ["core/*"],
+			"@mail/*": ["mails/*"],
+			"@middlewares/*": ["middlewares/*"],
+			"@helpers/*": ["helpers/*"],
+			"@jobs/*": ["jobs/*"],
+			"@events/*": ["events/*"]
+		},
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.js"],
+	"exclude": ["node_modules", "build"]
+}
