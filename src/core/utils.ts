@@ -10,4 +10,8 @@ export function generate_random_number(length: number) {
 	return result
 }
 
-
+// Validate email using regex
+export const isValidEmail = (email: string) => {
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+	return emailRegex.test(email)
+}

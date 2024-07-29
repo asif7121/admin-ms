@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
 //router
-app.use('/api/v1',router)
+app.use('/api/v1/admin',router)
 
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`)
