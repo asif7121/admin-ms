@@ -1,14 +1,14 @@
 import { Bundle } from '@models/bundle'
 import { Request, Response } from 'express'
 
-export const getAllBundle = async (req: Request, res: Response) => {
+export const getAllBlockedBundle = async (req: Request, res: Response) => {
 	try {
 		const { page = 1, limit = 10, search } = req.query
 		const pageNumber = parseInt(page as string)
 		const limitNumber = parseInt(limit as string)
 		const searchFilter = search
-			? { isBlocked: false, isDeleted: false, name: { $regex: search, $options: 'i' } }
-			: { isBlocked: false, isDeleted: false }
+			? { isBlocked: true,isDeleted:false, name: { $regex: search, $options: 'i' } }
+			: { isBlocked: true , isDeleted:false}
 		const bundles = await Bundle.aggregate([
 			{ $match: searchFilter },
 			{ $sort: { name: 1 } }, // Sort the results by bundle name
@@ -26,7 +26,8 @@ export const getAllBundle = async (req: Request, res: Response) => {
 					name: 1,
 					price: 1,
 					discount: 1,
-					_createdBy: 1,
+                    _createdBy: 1,
+                    _blockedBy:1,
 					products: {
 						$map: {
 							input: '$products',

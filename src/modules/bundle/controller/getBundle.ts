@@ -13,7 +13,9 @@ export const getBundle = async (req: Request, res: Response) => {
 		const bundle = await Bundle.aggregate([
 			{
 				$match: {
-					_id: new mongoose.Types.ObjectId(bundleId)
+					_id: new mongoose.Types.ObjectId(bundleId),
+					isDeleted: false,
+					isBlocked: false,
 				},
 			},
 			{

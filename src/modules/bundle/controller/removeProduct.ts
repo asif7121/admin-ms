@@ -18,12 +18,25 @@ export const removeProductFromBundle = async (req: Request, res: Response) => {
 		}
 
 		// Find the bundle
-		const bundle = await Bundle.findOne({ _id: bundleId, '_createdBy._id': _id })
+		const bundle = await Bundle.findOne({
+			_id: bundleId,
+			'_createdBy._id': _id
+		})
 		if (!bundle) {
 			return res.status(400).json({
 				error: 'Invalid bundle ID or you do not have permission to access this bundle.',
 			})
-		}
+        }
+        if (bundle.isDeleted) {
+            return res.status(400).json({
+				error: 'This bundle has been deleted by the owner.',
+			})
+        }
+        if (bundle.isBlocked) {
+            return res.status(400).json({
+				error: 'This bundle has been blocked.',
+			})
+        }
 
 		// Check if the product exists in the bundle
 		const productIndex = _.findIndex(

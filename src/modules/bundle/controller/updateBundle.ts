@@ -20,6 +20,11 @@ export const updateBundle = async (req: Request, res: Response) => {
 		if (bundle.isDeleted) {
 			return res.status(400).json({ error: 'this bundle has been deleted.' })
 		}
+		if (bundle.isBlocked) {
+			return res.status(400).json({
+				error: 'This bundle has been blocked.',
+			})
+		}
 		let totalPrice = 0
 
 		if (productsId) {
@@ -27,7 +32,7 @@ export const updateBundle = async (req: Request, res: Response) => {
 			const productIds = productsId.map((id: string) => new mongoose.Types.ObjectId(id))
 
 			// Find products by their _id and _createdBy._id
-			const products = await Product.find({_id: { $in: productIds }, isDeleted:false})
+			const products = await Product.find({_id: { $in: productIds }, isDeleted:false, isBlocked: false})
 
 			if (products.length !== productsId.length) {
 				return res.status(404).json({ error: 'Some products not found' })
