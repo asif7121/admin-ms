@@ -24,7 +24,7 @@ export const login = async (req: Request, res: Response) => {
 		const token = generate_token(payload)
 		return res
 			.status(200)
-			.json({ succes: true, message: 'Admin registered successfully', token: token })
+			.json({ succes: true, message: 'Admin logged in successfully', token: token })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json({ message: error.message })

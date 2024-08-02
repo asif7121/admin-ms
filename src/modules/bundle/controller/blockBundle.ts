@@ -2,30 +2,33 @@ import { Bundle } from '@models/bundle'
 import { Request, Response } from 'express'
 import { isValidObjectId } from 'mongoose'
 
-export const deleteBundle = async (req: Request, res: Response) => {
+export const blockBundle = async (req: Request, res: Response) => {
 	try {
 		const { _id } = req.user
 		const { bundleId } = req.query
 		if (!isValidObjectId(bundleId)) {
-			return res.status(400).json({ error: 'Invalid bundle Id.' })
+			return res.status(400).json({ error: 'Invalid Bundle Id.' })
 		}
-		const bundle = await Bundle.findOne({ _id: bundleId, '_createdBy._id': _id })
+		const bundle = await Bundle.findOne({ _id: bundleId })
 		if (!bundle) {
 			return res.status(404).json({ error: 'bundle not found..' })
-        }
-        if (bundle.isBlocked) {
+		}
+		if (bundle.isDeleted) {
 			return res.status(400).json({
-				error: 'This bundle has been blocked.',
+				error: 'This bundle has been deleted by the owner.',
 			})
 		}
-        if (bundle.isDeleted) {
+		if (bundle.isBlocked) {
 			return res.status(400).json({
-				error: 'This bundle already has been deleted by the owner.',
+				error: 'This bundle already has been blocked.',
 			})
 		}
-		bundle.isDeleted = true
+		bundle.isBlocked = true
+		bundle._blockedBy = _id
 		await bundle.save()
-		return res.status(200).json({ message: 'Bundle deleted successfully', deletedItem: bundle })
+		return res
+			.status(200)
+			.json({ message: 'Bundle blocked successfully', blockedItem: bundle })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json({ error: error.message })

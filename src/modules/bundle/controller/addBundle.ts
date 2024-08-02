@@ -14,8 +14,10 @@ export const addBundle = async (req: Request, res: Response) => {
 		// Find products by their _id
 		const products = await Product.find({
 			_id: { $in: productIds },
-			isDeleted: false,
-		})
+            isDeleted: false,
+            isBlocked: false,
+        })
+        
 		// console.log(products)
 		if (products.length !== productsId.length) {
 			return res.status(404).json({ error: 'Some products not found' })
