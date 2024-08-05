@@ -16,10 +16,13 @@ export const addProduct = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: error.details[0].message })
 		}
 		const category = await Category.findById(_category)
-		if (!category || category.isDeleted === true) {
+		if (!category) {
 			return res.status(400).json({ error: 'Invalid category' })
 		}
-		const finalPrice = discount ? mrp - (mrp * discount) / 100 : mrp
+		if (category.isDeleted) {
+			return res.status(400).json({ error: 'This category has been deleted.' })
+		}
+		const finalPrice = discount > 0 || discount <= 100 ? mrp - (mrp * discount) / 100 : mrp
 
 		const product = await Product.create({
 			name,

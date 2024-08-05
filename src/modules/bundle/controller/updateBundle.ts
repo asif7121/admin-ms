@@ -1,7 +1,7 @@
 import { Bundle } from '@models/bundle'
 import { Product } from '@models/product'
 import { Request, Response } from 'express'
-import mongoose, { isValidObjectId } from 'mongoose'
+import  { isValidObjectId } from 'mongoose'
 
 export const updateBundle = async (req: Request, res: Response) => {
 	try {
@@ -28,21 +28,29 @@ export const updateBundle = async (req: Request, res: Response) => {
 		let totalPrice = 0
 
 		if (productsId) {
-			// Convert productsId to array of ObjectId
-			const productIds = productsId.map((id: string) => new mongoose.Types.ObjectId(id))
+			// Validate that productsId is an array of valid ObjectId strings
+			if (!Array.isArray(productsId) || productsId.some((id) => !isValidObjectId(id))) {
+				return res.status(400).json({ error: 'Invalid product IDs provided' })
+			}
 
+			// Remove duplicate IDs
+			const uniqueProductIds = [...new Set(productsId)]
 			// Find products by their _id and _createdBy._id
-			const products = await Product.find({_id: { $in: productIds }, isDeleted:false, isBlocked: false})
+			const products = await Product.find({
+				_id: { $in: uniqueProductIds },
+				isDeleted: false,
+				isBlocked: false,
+			})
 
-			if (products.length !== productsId.length) {
+			if (products.length !== uniqueProductIds.length) {
 				return res.status(404).json({ error: 'Some products not found' })
 			}
 
 			// Combine existing product IDs with the new ones
-			const combinedProductIds = [...bundle._products, ...productIds]
+			const combinedProductIds = [...bundle._products, ...uniqueProductIds]
 
 			// Find all products including the existing ones
-			const allProducts = await Product.find({_id: { $in: combinedProductIds }})
+			const allProducts = await Product.find({ _id: { $in: combinedProductIds } })
 
 			// Calculate the total price of all products
 			totalPrice = allProducts.reduce((sum, product) => sum + product.price, 0)
@@ -56,8 +64,16 @@ export const updateBundle = async (req: Request, res: Response) => {
 
 		// Update only the provided fields
 		if (name !== undefined) bundle.name = name
-		if (discount !== undefined) bundle.discount = discount
-
+		if (discount !== undefined) {
+			// Ensure the discount is a number, greater than 0, and does not exceed 100
+			const discountValue = Number(discount)
+			if (isNaN(discountValue) || discountValue <= 0 || discountValue > 100) {
+				return res
+					.status(400)
+					.json({ error: 'Discount must be a number greater than 0 and not exceed 100' })
+			}
+			bundle.discount = discountValue
+		}
 		// Apply the discount if provided
 		const finalPrice = bundle.discount
 			? totalPrice - (totalPrice * bundle.discount) / 100

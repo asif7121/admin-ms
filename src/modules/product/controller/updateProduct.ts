@@ -28,14 +28,28 @@ export const updateProduct = async (req: Request, res: Response) => {
 		if (name !== undefined) product.name = name
 		if (description !== undefined) product.description = description
 
-		// Calculate the final price
 		if (mrp !== undefined) {
-			const finalPrice = product.discount ? mrp - (mrp * product.discount) / 100 : mrp
-			product.mrp = mrp
+			const mrpValue = Number(mrp)
+			if (isNaN(mrpValue) || mrpValue <= 0) {
+				return res.status(400).json({
+					error: 'Discount must be a number greater than 0.',
+				})
+			}
+			product.mrp = mrpValue
+			const finalPrice = product.discount
+				? product.mrp - (product.mrp * product.discount) / 100
+				: product.mrp
 			product.price = finalPrice
-		} else if (discount !== undefined) {
-			const finalPrice = product.mrp - (product.mrp * discount) / 100
-			product.discount = discount
+		} // Validate and update discount if provided
+		else if (discount !== undefined) {
+			const discountValue = Number(discount)
+			if (isNaN(discountValue) || discountValue <= 0 || discountValue > 100) {
+				return res.status(400).json({
+					error: 'Discount must be a number greater than 0 and less than or equal to 100.',
+				})
+			}
+			product.discount = discountValue
+			const finalPrice = product.mrp - (product.mrp * product.discount) / 100
 			product.price = finalPrice
 		}
 		await product.save()
