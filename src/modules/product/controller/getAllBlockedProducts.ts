@@ -12,7 +12,6 @@ export const getAllBlockedProduct = async (req: Request, res: Response) => {
 		if (search) {
 			matchFilter.$or = [
 				{ name: { $regex: search, $options: 'i' } },
-				{ 'category.name': { $regex: search, $options: 'i' } },
 			]
 		}
 

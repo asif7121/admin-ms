@@ -19,7 +19,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
 		}
 		if (product.isDeleted) {
 			return res.status(400).json({
-				error: 'This product has been deleted by the owner.',
+				error: 'This product already has been deleted by the owner.',
 			})
 		}
 		if (product.isBlocked) {

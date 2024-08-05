@@ -3,13 +3,13 @@ import { Request, Response } from 'express'
 
 export const getAllCategory = async (req: Request, res: Response) => {
 	try {
-		const { _id } = req.user
+		
 		const { page = 1, limit = 10, search } = req.query
 		const pageNumber = parseInt(page as string)
 		const limitNumber = parseInt(limit as string)
 		const searchFilter = search
-			? { _createdBy: _id, name: { $regex: search, $options: 'i' } }
-			: { _createdBy: _id }
+			? { isDeleted: false, name: { $regex: search, $options: 'i' } }
+			: { isDeleted: false }
 		const data = await Category.find(searchFilter)
 			.sort({ name: 1 })
 			.skip((pageNumber - 1) * limitNumber)

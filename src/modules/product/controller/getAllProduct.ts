@@ -4,7 +4,7 @@ import { Request, Response } from 'express'
 export const getAllProduct = async (req: Request, res: Response) => {
 	try {
 		
-		const { page = 1, limit = 10, search } = req.query
+		const { page = 1, limit = 10, search, category } = req.query
 		const pageNumber = parseInt(page as string)
 		const limitNumber = parseInt(limit as string)
 
@@ -13,10 +13,11 @@ export const getAllProduct = async (req: Request, res: Response) => {
 		if (search) {
 			matchFilter.$or = [
 				{ name: { $regex: search, $options: 'i' } },
-				{ 'category.name': { $regex: search, $options: 'i' } },
 			]
 		}
-
+		if (category) {
+			matchFilter['category.name'] = { $regex: category, $options: 'i' }
+		}
 		const products = await Product.aggregate([
 			{
 				$lookup: {
