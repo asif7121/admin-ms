@@ -1,16 +1,16 @@
-import { AdminDiscount } from '@models/discount'
+import { Discount } from '@models/discount'
 import { Request, Response } from 'express'
 import { isValidObjectId } from 'mongoose'
 
 export const updateDiscount = async (req: Request, res: Response) => {
 	try {
-		const { _id } = req.user
-		const { name, value } = req.body
+		
+		const { discountCode, value } = req.body
 		const { discountId } = req.query
 		if (!isValidObjectId(discountId)) {
 			return res.status(400).json({ error: 'Invalid discount Id.' })
 		}
-		const discount = await AdminDiscount.findOne({ _id: discountId, _createdBy: _id })
+		const discount = await Discount.findOne({ _id: discountId })
 		if (!discount) {
 			return res.status(400).json({ error: 'No discount available.' })
 		}
@@ -19,7 +19,7 @@ export const updateDiscount = async (req: Request, res: Response) => {
 				.status(403)
 				.json({ error: "This discount has been deleted, you cannot update it's property" })
 		}
-		if(discount.name !== undefined) discount.name = name
+		if(discount.discountCode !== undefined) discount.discountCode = discountCode
 		if(discount.value !== undefined) discount.value = value
 		await discount.save()
 		return res.status(200).json({ message: 'Updated successfully', data: discount })

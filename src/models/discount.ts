@@ -5,24 +5,23 @@ import { Document, model, Schema } from "mongoose";
 
 interface IDiscount extends Document {
 	value: number
-	name: string
+	discountCode: string
 	startDate: Date
 	endDate: Date
 	isDeleted: boolean
-	_product?: Schema.Types.ObjectId
-	_bundle?: Schema.Types.ObjectId
+	_product?: Schema.Types.ObjectId[]
+	_bundle?: Schema.Types.ObjectId[]
 	_createdBy: Schema.Types.ObjectId
 }
 
 const schema: Schema = new Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-			lowercase: true
-		},
 		value: {
 			type: Number,
+			required: true,
+		},
+		discountCode: {
+			type: String,
 			required: true,
 		},
 		startDate: {
@@ -35,23 +34,30 @@ const schema: Schema = new Schema(
 		},
 		isDeleted: {
 			type: Boolean,
-			default: false
+			default: false,
 		},
-		_product: {
-            type: Schema.Types.ObjectId,
-            default: undefined
-		},
-		_bundle: {
-            type: Schema.Types.ObjectId,
-            default: undefined
-		},
+		products: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Product',
+				default: undefined,
+			},
+		],
+		bundles: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Bundle',
+				default: undefined,
+			},
+		],
 		_createdBy: {
-            type: Schema.Types.ObjectId,
-            default: undefined
+			type: Schema.Types.ObjectId,
+			ref: 'Admin',
+			required: true,
 		},
 	},
 	{ timestamps: true, versionKey: false }
 )
 
 
-export const AdminDiscount = model<IDiscount>('AdminDiscount', schema)
+export const Discount = model<IDiscount>('Discount', schema)
