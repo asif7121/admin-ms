@@ -4,10 +4,12 @@ import moment from 'moment'
 
 export const addDiscount = async (req: Request, res: Response) => {
 	try {
+		
 		const { _id } = req.user
-		const { value, startDate, endDate, discountCode } = req.body
-		if (!discountCode || typeof discountCode !== 'string') {
-			return res.status(400).json({ error: 'Please provide proper discount code' })
+		const { type, value, startDate, endDate } = req.body
+		
+		if (type !== 'mrp' && type !== 'price') {
+			return res.status(400).json({ error: 'Please provide a valid discount type.' })
 		}
 		// Parse dates using 'YYYY-MM-DD' format
 		const start = moment(startDate, 'YYYY-MM-DD', true)
@@ -35,8 +37,8 @@ export const addDiscount = async (req: Request, res: Response) => {
 		}
 
 		const discount = await Discount.create({
+			type,
 			value,
-			discountCode,
 			startDate: start.toDate(),
 			endDate: end.toDate(),
 			_createdBy: _id,

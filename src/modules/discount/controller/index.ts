@@ -1,3 +1,7 @@
+import { removeDiscountFromBundles } from './removeDiscountFromBundle';
+import { removeDiscountFromProducts } from './removeDiscountFromProduct';
+import { applyDiscountToBundles } from './applyDiscountOnbundles';
+import { applyDiscountToProducts } from './applyDiscountOnProduct';
 import { updateDiscount } from './updateDiscount';
 import { getAllDiscount } from './getAllDiscount';
 import { getDiscount } from './getDiscount';
@@ -13,5 +17,9 @@ export {
     getDiscount,
     getAllDiscount,
     updateDiscount,
-    deleteDiscount
+    deleteDiscount,
+    applyDiscountToProducts,
+    applyDiscountToBundles,
+    removeDiscountFromProducts,
+    removeDiscountFromBundles,
 }
