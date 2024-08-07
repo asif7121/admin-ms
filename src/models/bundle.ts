@@ -6,6 +6,8 @@ interface IBundle extends Document {
 	discount?: number
 	isDeleted: boolean
 	isBlocked: boolean
+	platformDiscount?: number
+	discountedPrice?: number
 	_blockedBy: Schema.Types.ObjectId
 	_products: Schema.Types.ObjectId[]
 	_createdBy: {
@@ -41,6 +43,14 @@ const bundleSchema: Schema = new Schema(
 		isBlocked: {
 			type: Boolean,
 			default: false,
+		},
+		platformDiscount: {
+			type: Number,
+			default: undefined,
+		},
+		discountedPrice: {
+			type: Number,
+			default: undefined,
 		},
 		_blockedBy: {
 			type: Schema.Types.ObjectId,

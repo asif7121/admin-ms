@@ -4,13 +4,13 @@ import { Document, model, Schema } from "mongoose";
 
 
 interface IDiscount extends Document {
+	type: 'mrp' | 'price'
 	value: number
-	discountCode: string
 	startDate: Date
 	endDate: Date
 	isDeleted: boolean
-	_product?: Schema.Types.ObjectId[]
-	_bundle?: Schema.Types.ObjectId[]
+	_products?: Schema.Types.ObjectId[]
+	_bundles?: Schema.Types.ObjectId[]
 	_createdBy: Schema.Types.ObjectId
 }
 
@@ -20,8 +20,9 @@ const schema: Schema = new Schema(
 			type: Number,
 			required: true,
 		},
-		discountCode: {
+		type: {
 			type: String,
+			enum: ['mrp', 'price'],
 			required: true,
 		},
 		startDate: {
@@ -36,14 +37,14 @@ const schema: Schema = new Schema(
 			type: Boolean,
 			default: false,
 		},
-		products: [
+		_products: [
 			{
 				type: Schema.Types.ObjectId,
 				ref: 'Product',
 				default: undefined,
 			},
 		],
-		bundles: [
+		_bundles: [
 			{
 				type: Schema.Types.ObjectId,
 				ref: 'Bundle',

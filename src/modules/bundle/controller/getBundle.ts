@@ -33,6 +33,20 @@ export const getBundle = async (req: Request, res: Response) => {
 					price: 1,
 					discount: 1,
 					_createdBy: 1,
+					platformDiscount: {
+						$cond: {
+							if: { $gt: ['$platformDiscount', null] },
+							then: '$platformDiscount',
+							else: '$$REMOVE',
+						},
+					},
+					discountedPrice: {
+						$cond: {
+							if: { $gt: ['$discountedPrice', null] },
+							then: '$discountedPrice',
+							else: '$$REMOVE',
+						},
+					},
 					products: {
 						$map: {
 							input: '$products',
