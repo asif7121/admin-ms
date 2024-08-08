@@ -1,7 +1,7 @@
 import { Bundle } from '@models/bundle'
 import { Product } from '@models/product'
 import { Request, Response } from 'express'
-import  { isValidObjectId } from 'mongoose'
+import { isValidObjectId } from 'mongoose'
 
 export const updateBundle = async (req: Request, res: Response) => {
 	try {
@@ -35,19 +35,29 @@ export const updateBundle = async (req: Request, res: Response) => {
 
 			// Remove duplicate IDs
 			const uniqueProductIds = [...new Set(productsId)]
+			// Filter out product IDs that are already had been added to this bundle
+			const newProductIds = uniqueProductIds.filter(
+				(id) => !bundle._products.map((pId) => pId.toString()).includes(id)
+			)
+
+			if (newProductIds.length === 0) {
+				return res
+					.status(400)
+					.json({ error: 'All provided products already had been added to this bundle.' })
+			}
 			// Find products by their _id and _createdBy._id
 			const products = await Product.find({
-				_id: { $in: uniqueProductIds },
+				_id: { $in: newProductIds },
 				isDeleted: false,
 				isBlocked: false,
 			})
 
-			if (products.length !== uniqueProductIds.length) {
+			if (products.length !== newProductIds.length) {
 				return res.status(404).json({ error: 'Some products not found' })
 			}
 
 			// Combine existing product IDs with the new ones
-			const combinedProductIds = [...bundle._products, ...uniqueProductIds]
+			const combinedProductIds = [...bundle._products, ...newProductIds]
 
 			// Find all products including the existing ones
 			const allProducts = await Product.find({ _id: { $in: combinedProductIds } })
@@ -58,7 +68,7 @@ export const updateBundle = async (req: Request, res: Response) => {
 			bundle._products = combinedProductIds
 		} else {
 			// Calculate the total price of the existing products
-			const existingProducts = await Product.find({_id: { $in: bundle._products }})
+			const existingProducts = await Product.find({ _id: { $in: bundle._products } })
 			totalPrice = existingProducts.reduce((sum, product) => sum + product.price, 0)
 		}
 

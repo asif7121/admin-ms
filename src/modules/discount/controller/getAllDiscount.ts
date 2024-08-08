@@ -4,17 +4,15 @@ import { Request, Response } from 'express'
 export const getAllDiscount = async (req: Request, res: Response) => {
 	try {
 		
-		const { page = 1, limit = 10, search } = req.query
+		const { page = 1, limit = 10 } = req.query
 		const pageNumber = parseInt(page as string)
 		const limitNumber = parseInt(limit as string)
-		const searchFilter = search
-			? { isDeleted:false, discountCode: { $regex: search, $options: 'i' } }
-			: { isDeleted:false }
+		const searchFilter = { isDeleted:false }
 		const data = await Discount.find(searchFilter)
-			.sort({ discountCode: 1 })
+			.sort({ startDate: 1 })
 			.skip((pageNumber - 1) * limitNumber)
 			.limit(limitNumber)
-		
+			
 		const totalData = await Discount.countDocuments(searchFilter)
 		return res.status(200).json({
 			success: true,

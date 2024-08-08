@@ -44,9 +44,23 @@ export const getAllBlockedProduct = async (req: Request, res: Response) => {
 								discount: 1,
 								description: 1,
 								stockAvailable: 1,
-                                category: '$category.name',
-                                _createdBy: 1,
-                                _blockedBy:1,
+								category: '$category.name',
+								_createdBy: 1,
+								_blockedBy: 1,
+								platformDiscount: {
+									$cond: {
+										if: { $gt: ['$platformDiscount', null] },
+										then: '$platformDiscount',
+										else: '$$REMOVE',
+									},
+								},
+								discountedPrice: {
+									$cond: {
+										if: { $gt: ['$discountedPrice', null] },
+										then: '$discountedPrice',
+										else: '$$REMOVE',
+									},
+								},
 							},
 						},
 					],

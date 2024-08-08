@@ -16,13 +16,13 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 		if (!Array.isArray(bundleIds) || bundleIds.some((id) => !isValidObjectId(id))) {
 			return res.status(400).json({ error: 'Invalid bundle IDs.' })
 		}
-		const discount = await Discount.findOne({
-			_id: discountId,
-			isDeleted: false,
-		})
+		const discount = await Discount.findById(discountId)
 
 		if (!discount) {
 			return res.status(404).json({ error: 'Discount not found' })
+        }
+        if (discount.isDeleted) {
+			return res.status(400).json({ error: 'This discount already has been deleted.' })
 		}
 		// Ensure the discount type is 'price' when applying to bundles
 		if (discount.type !== 'price') {
@@ -38,7 +38,7 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 
 		const uniqueBundleIds = _.uniq(bundleIds)
 		// Filter out product IDs that are already associated with this discount
-		const newBundleIds = uniqueBundleIds.filter((id) => !discount._bundles.includes(id))
+		const newBundleIds = uniqueBundleIds.filter((id) => !discount._bundles.toString().includes(id))
 
 		if (newBundleIds.length === 0) {
 			return res

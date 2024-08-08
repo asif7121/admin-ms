@@ -30,7 +30,7 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'Discount is expired..' })
 		}
 		// Filter out product IDs that are already associated with this discount
-		const newProductIds = uniqueProductIds.filter((id) => !discount._products.includes(id))
+		const newProductIds = uniqueProductIds.filter((id) => !discount._products.toString().includes(id))
 
 		if (newProductIds.length === 0) {
 			return res
