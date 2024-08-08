@@ -48,7 +48,7 @@ export const removeProductFromBundle = async (req: Request, res: Response) => {
 		}
 
 		// Remove the product from the bundle
-		_.pullAt(bundle._products, productIndex)
+		bundle._products = bundle._products.filter((id) => id.toString() !== productId)
 
 		// Recalculate the total price
 		const remainingProducts = await Product.find({ _id: { $in: bundle._products } })

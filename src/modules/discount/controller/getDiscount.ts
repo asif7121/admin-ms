@@ -10,7 +10,7 @@ export const getDiscount = async (req: Request, res: Response) => {
 		if (!isValidObjectId(discountId)) {
 			return res.status(400).json({ error: 'Invalid discount Id.' })
 		}
-		const data = await Discount.findOne({ _id: discountId})
+		const data = await Discount.findById(discountId)
 		if (!data) {
 			return res.status(400).json({ error: 'No discount available.' })
 		}

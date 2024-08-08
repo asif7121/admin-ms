@@ -23,13 +23,10 @@ export const removeDiscountFromProducts = async (req: Request, res: Response) =>
 			return res.status(400).json({ error: 'This discount has been deleted.' })
 		}
 
-		// // Convert productId to ObjectId
-		// const productObjectId = new Schema.Types.ObjectId(productId as string)
-
 		// Check if the product exists in the discount
 		const productIndex = _.findIndex(discount._products, (id) => id.toString() === productId)
 		if (productIndex === -1) {
-			return res.status(400).json({ error: 'Bundle not found in the discount.' })
+			return res.status(400).json({ error: 'Product not found in the discount.' })
 		}
 
 		// Remove the product from the discount
