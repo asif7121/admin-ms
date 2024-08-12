@@ -1,6 +1,7 @@
 import { Bundle } from '@models/bundle'
 import { Product } from '@models/product'
 import { Request, Response } from 'express'
+import _ from 'lodash'
 import { isValidObjectId } from 'mongoose'
 
 export const updateBundle = async (req: Request, res: Response) => {
@@ -26,7 +27,7 @@ export const updateBundle = async (req: Request, res: Response) => {
 			})
 		}
 		let totalPrice = 0
-
+		let totalMrp = 0
 		if (productsId) {
 			// Validate that productsId is an array of valid ObjectId strings
 			if (!Array.isArray(productsId) || productsId.some((id) => !isValidObjectId(id))) {
@@ -64,12 +65,13 @@ export const updateBundle = async (req: Request, res: Response) => {
 
 			// Calculate the total price of all products
 			totalPrice = allProducts.reduce((sum, product) => sum + product.price, 0)
-
+			totalMrp = _.sumBy(allProducts,'mrp')
 			bundle._products = combinedProductIds
 		} else {
 			// Calculate the total price of the existing products
 			const existingProducts = await Product.find({ _id: { $in: bundle._products } })
 			totalPrice = existingProducts.reduce((sum, product) => sum + product.price, 0)
+			totalMrp = _.sumBy(existingProducts,'mrp')
 		}
 
 		// Update only the provided fields
@@ -86,10 +88,10 @@ export const updateBundle = async (req: Request, res: Response) => {
 		}
 		// Apply the discount if provided
 		const finalPrice = bundle.discount
-			? totalPrice - (totalPrice * bundle.discount) / 100
+			? totalMrp - (totalMrp * bundle.discount) / 100
 			: totalPrice
 		bundle.price = finalPrice
-
+		bundle.mrp = totalMrp
 		await bundle.save()
 
 		return res.status(200).json({ success: true, data: bundle })

@@ -1,6 +1,7 @@
 import { Bundle } from '@models/bundle'
 import { Product } from '@models/product'
 import { Request, Response } from 'express'
+import _ from 'lodash'
 import mongoose from 'mongoose'
 
 export const addBundle = async (req: Request, res: Response) => {
@@ -33,20 +34,22 @@ export const addBundle = async (req: Request, res: Response) => {
 
 		// Calculate the total price of the products
 		const totalPrice = products.reduce((sum, product) => sum + product.price, 0)
-
+		// calculate total mrp 
+		const totalMrp = _.sumBy(products,'mrp')
 		// Ensure the discount is a number and does not exceed 100
 		const discountValue = discount ? Number(discount) : 0
 		if (isNaN(discountValue) || discountValue > 100) {
 			return res.status(400).json({ error: 'Discount must be a number and not exceed 100' })
 		}
-
 		// Apply the discount if provided
-		const finalPrice = discountValue > 0 ? totalPrice - (totalPrice * discountValue) / 100 : totalPrice
+		const finalPrice =
+			discountValue > 0 ? totalMrp - (totalMrp * discountValue) / 100 : totalPrice
 
 		// Create the bundle with the calculated price
 		const bundle = await Bundle.create({
 			name,
 			price: finalPrice,
+			mrp: totalMrp,
 			_products: productIds,
 			discount,
 			_createdBy: {

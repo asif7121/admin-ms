@@ -24,7 +24,9 @@ export const deleteDiscount = async (req: Request, res: Response) => {
 						const product = await Product.findById(productId)
 						if (product) {
 							product.platformDiscount = undefined
-							product.discountedPrice = undefined
+							product.price = product.discount
+								? product.mrp - (product.mrp * product.discount) / 100
+								: product.mrp
 							await product.save()
 						}
 					}
@@ -40,7 +42,10 @@ export const deleteDiscount = async (req: Request, res: Response) => {
 						const bundle = await Bundle.findById(bundleId)
 						if (bundle) {
 							bundle.platformDiscount = undefined
-							bundle.discountedPrice = undefined
+							bundle.price = bundle.discount
+								? bundle.mrp - (bundle.mrp * bundle.discount) / 100
+								: bundle.mrp
+
 							await bundle.save()
 						}
 					}

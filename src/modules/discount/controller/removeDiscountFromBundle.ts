@@ -35,7 +35,7 @@ export const removeDiscountFromBundles = async (req: Request, res: Response) => 
 
 		const bundle = await Bundle.findById(bundleId)
 		bundle.platformDiscount = undefined
-		bundle.discountedPrice = undefined
+		bundle.price = bundle.discount ? bundle.mrp - (bundle.mrp * bundle.discount/100) : bundle.mrp
 		await bundle.save()
 		await discount.save()
 

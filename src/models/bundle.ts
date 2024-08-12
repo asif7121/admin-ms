@@ -3,11 +3,11 @@ import { Document, model, Schema } from 'mongoose'
 interface IBundle extends Document {
 	name: string
 	price: number
+	mrp: number
 	discount?: number
 	isDeleted: boolean
 	isBlocked: boolean
 	platformDiscount?: number
-	discountedPrice?: number
 	_blockedBy: Schema.Types.ObjectId
 	_products: Schema.Types.ObjectId[]
 	_createdBy: {
@@ -23,6 +23,10 @@ const bundleSchema: Schema = new Schema(
 			required: true,
 		},
 		price: {
+			type: Number,
+			required: true,
+		},
+		mrp: {
 			type: Number,
 			required: true,
 		},
@@ -45,10 +49,6 @@ const bundleSchema: Schema = new Schema(
 			default: false,
 		},
 		platformDiscount: {
-			type: Number,
-			default: undefined,
-		},
-		discountedPrice: {
 			type: Number,
 			default: undefined,
 		},
