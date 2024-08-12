@@ -54,13 +54,6 @@ export const getAllBlockedProduct = async (req: Request, res: Response) => {
 										else: '$$REMOVE',
 									},
 								},
-								discountedPrice: {
-									$cond: {
-										if: { $gt: ['$discountedPrice', null] },
-										then: '$discountedPrice',
-										else: '$$REMOVE',
-									},
-								},
 							},
 						},
 					],

@@ -55,13 +55,6 @@ export const getAllProduct = async (req: Request, res: Response) => {
 										else: '$$REMOVE',
 									},
 								},
-								discountedPrice: {
-									$cond: {
-										if: { $gt: ['$discountedPrice', null] },
-										then: '$discountedPrice',
-										else: '$$REMOVE',
-									},
-								},
 								_createdBy: 1,
 							},
 						},

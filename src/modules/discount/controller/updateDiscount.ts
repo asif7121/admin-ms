@@ -33,11 +33,11 @@ export const updateDiscount = async (req: Request, res: Response) => {
 						if (product) {
 							if (discount.type === 'price') {
 								product.platformDiscount = value
-								product.discountedPrice = product.price - product.price * (value / 100)
+								product.price = product.price - (product.price * value / 100)
 								await product.save()
 							} else if (discount.type === 'mrp') {
 								product.platformDiscount = value
-								product.discountedPrice = product.mrp - product.mrp * (value / 100)
+								product.price = product.mrp - (product.mrp * value / 100)
 								await product.save()
 							}
 						}
@@ -52,11 +52,17 @@ export const updateDiscount = async (req: Request, res: Response) => {
 				discount._bundles.map(async (bundleId) => {
 					if (isValidObjectId(bundleId)) {
 						const bundle = await Bundle.findById(bundleId)
-						if (bundle && discount.type === 'price') {
+						if (bundle) {
 							bundle.platformDiscount = value
-							bundle.discountedPrice = bundle.price - bundle.price * (value / 100)
-							await bundle.save()
+							if (discount.type === 'price') {
+								bundle.price = bundle.price - (bundle.price * value) / 100
+								await bundle.save()
+							} else if (discount.type === 'mrp') {
+								bundle.price = bundle.mrp - (bundle.mrp * value) / 100
+								await bundle.save()
+							}
 						}
+						
 					}
 				})
 			)

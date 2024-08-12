@@ -34,7 +34,7 @@ export const removeDiscountFromProducts = async (req: Request, res: Response) =>
 
 		const product = await Product.findById(productId)
 		product.platformDiscount = undefined
-		product.discountedPrice = undefined
+		product.price = product.discount ? product.mrp - (product.mrp * product.discount/100) : product.mrp
 		await product.save()
 		await discount.save()
 

@@ -8,10 +8,10 @@ import { isValidObjectId } from 'mongoose'
 export const applyDiscountToBundles = async (req: Request, res: Response) => {
 	try {
 		const { discountId, bundleIds } = req.body
-        
-        if (!isValidObjectId(discountId)) {
-            return res.status(400).json({ error: 'Invalid discount ID.' })
-        }
+
+		if (!isValidObjectId(discountId)) {
+			return res.status(400).json({ error: 'Invalid discount ID.' })
+		}
 		// Validate that bundlesId is an array of valid ObjectId strings
 		if (!Array.isArray(bundleIds) || bundleIds.some((id) => !isValidObjectId(id))) {
 			return res.status(400).json({ error: 'Invalid bundle IDs.' })
@@ -20,16 +20,11 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 
 		if (!discount) {
 			return res.status(404).json({ error: 'Discount not found' })
-        }
-        if (discount.isDeleted) {
+		}
+		if (discount.isDeleted) {
 			return res.status(400).json({ error: 'This discount already has been deleted.' })
 		}
-		// Ensure the discount type is 'price' when applying to bundles
-		if (discount.type !== 'price') {
-			return res
-				.status(400)
-				.json({ error: 'Discount type must be "price" to apply to bundles.' })
-		}
+
 		// Check if the discount is expired
 		const currentDate = moment()
 		if (currentDate.isBefore(discount.startDate) || currentDate.isAfter(discount.endDate)) {
@@ -38,7 +33,9 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 
 		const uniqueBundleIds = _.uniq(bundleIds)
 		// Filter out product IDs that are already associated with this discount
-		const newBundleIds = uniqueBundleIds.filter((id) => !discount._bundles.toString().includes(id))
+		const newBundleIds = uniqueBundleIds.filter(
+			(id) => !discount._bundles.toString().includes(id)
+		)
 
 		if (newBundleIds.length === 0) {
 			return res
@@ -54,21 +51,49 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 		if (bundles.length !== newBundleIds.length) {
 			return res.status(404).json({ error: 'Some bundles not found or are not available' })
 		}
-
-		// Use aggregation pipeline to update bundles
-		await Bundle.updateMany(
-			{ _id: { $in: newBundleIds }, isDeleted: false, isBlocked: false },
-			[
-				{ $set: { platformDiscount: discount.value } },
-				{
-					$set: {
-						discountedPrice: {
-							$subtract: ['$price', { $multiply: ['$price', discount.value / 100] }],
+		for (const bundle of bundles) {
+			if (bundle.platformDiscount !== undefined) {
+				return res
+					.status(400)
+					.json({
+						error: `This bundle ${bundle._id} already had a discount applied by admin`,
+					})
+			}
+		}
+		if (discount.type === 'price') {
+			// Use aggregation pipeline to update bundles
+			await Bundle.updateMany(
+				{ _id: { $in: newBundleIds }, isDeleted: false, isBlocked: false },
+				[
+					{ $set: { platformDiscount: discount.value } },
+					{
+						$set: {
+							price: {
+								$subtract: [
+									'$price',
+									{ $multiply: ['$price', discount.value / 100] },
+								],
+							},
 						},
 					},
-				},
-			]
-		)
+				]
+			)
+		} else if (discount.type === 'mrp') {
+			// Use aggregation pipeline to update bundles
+			await Bundle.updateMany(
+				{ _id: { $in: newBundleIds }, isDeleted: false, isBlocked: false },
+				[
+					{ $set: { platformDiscount: discount.value } },
+					{
+						$set: {
+							price: {
+								$subtract: ['$mrp', { $multiply: ['$mrp', discount.value / 100] }],
+							},
+						},
+					},
+				]
+			)
+		}
 
 		discount._bundles = [...discount._bundles, ...newBundleIds]
 		await discount.save()

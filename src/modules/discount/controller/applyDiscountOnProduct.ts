@@ -30,12 +30,29 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'Discount is expired..' })
 		}
 		// Filter out product IDs that are already associated with this discount
-		const newProductIds = uniqueProductIds.filter((id) => !discount._products.toString().includes(id))
+		const newProductIds = uniqueProductIds.filter(
+			(id) => !discount._products.toString().includes(id)
+		)
 
 		if (newProductIds.length === 0) {
 			return res
 				.status(400)
 				.json({ error: 'All provided products already have this discount.' })
+		}
+		const products = await Product.find({ _id: { $in: newProductIds }, isBlocked: false, isDeleted: false })
+		if (products.length !== newProductIds.length) {
+						return res
+							.status(404)
+							.json({ error: 'Some products not found or are not available' })
+		}
+		for (const product of products) {
+			if (product.platformDiscount !== undefined) {
+				return res
+					.status(400)
+					.json({
+						error: `This product ${product._id} already had a discount applied by admin`,
+					})
+			}
 		}
 		if (discount.type === 'mrp') {
 			await Product.updateMany(
@@ -44,7 +61,7 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 					{ $set: { platformDiscount: discount.value } },
 					{
 						$set: {
-							discountedPrice: {
+							price: {
 								$subtract: ['$mrp', { $multiply: ['$mrp', discount.value / 100] }],
 							},
 						},
@@ -58,7 +75,7 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 					{ $set: { platformDiscount: discount.value } },
 					{
 						$set: {
-							discountedPrice: {
+							price: {
 								$subtract: [
 									'$price',
 									{ $multiply: ['$price', discount.value / 100] },
