@@ -6,7 +6,7 @@ import mongoose from 'mongoose'
 
 export const addBundle = async (req: Request, res: Response) => {
 	try {
-		const { _id, role } = req.user
+		const { _id} = req.user
 		const { name, productsId, discount } = req.body
 
 		// Validate that productsId is an array of valid ObjectId strings
@@ -52,10 +52,7 @@ export const addBundle = async (req: Request, res: Response) => {
 			mrp: totalMrp,
 			_products: productIds,
 			discount,
-			_createdBy: {
-				_id: _id,
-				role: role,
-			},
+			_createdBy:_id
 		})
 
 		return res.status(201).json({ success: true, data: bundle })

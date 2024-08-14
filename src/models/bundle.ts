@@ -10,10 +10,7 @@ interface IBundle extends Document {
 	platformDiscount?: number
 	_blockedBy: Schema.Types.ObjectId
 	_products: Schema.Types.ObjectId[]
-	_createdBy: {
-		_id: Schema.Types.ObjectId
-		role: 'seller' | 'admin'
-	}
+	_createdBy: Schema.Types.ObjectId
 }
 
 const bundleSchema: Schema = new Schema(
@@ -58,13 +55,8 @@ const bundleSchema: Schema = new Schema(
 		},
 
 		_createdBy: {
-			_id: {
-				type: Schema.Types.ObjectId,
-			},
-			role: {
-				type: String,
-				enum: ['seller', 'admin'],
-			},
+			type: Schema.Types.ObjectId,
+			required:true
 		},
 	},
 	{ timestamps: true, versionKey: false }

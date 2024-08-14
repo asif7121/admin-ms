@@ -20,7 +20,7 @@ export const removeProductFromBundle = async (req: Request, res: Response) => {
 		// Find the bundle
 		const bundle = await Bundle.findOne({
 			_id: bundleId,
-			'_createdBy._id': _id
+			_createdBy: _id
 		})
 		if (!bundle) {
 			return res.status(400).json({

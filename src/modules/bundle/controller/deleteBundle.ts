@@ -9,7 +9,7 @@ export const deleteBundle = async (req: Request, res: Response) => {
 		if (!isValidObjectId(bundleId)) {
 			return res.status(400).json({ error: 'Invalid bundle Id.' })
 		}
-		const bundle = await Bundle.findOne({ _id: bundleId, '_createdBy._id': _id })
+		const bundle = await Bundle.findOne({ _id: bundleId, _createdBy: _id })
 		if (!bundle) {
 			return res.status(404).json({ error: 'bundle not found..' })
         }
