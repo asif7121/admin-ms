@@ -53,6 +53,8 @@ export const deleteDiscount = async (req: Request, res: Response) => {
 			)
 		}
 		discount.isDeleted = true
+		discount._products = []
+		discount._bundles = []
 		await discount.save()
 		return res.status(200).json({ success: true, data: discount })
 	} catch (error) {

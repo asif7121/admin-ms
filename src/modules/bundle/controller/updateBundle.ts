@@ -14,7 +14,7 @@ export const updateBundle = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'Invalid bundle Id.' })
 		}
 
-		const bundle = await Bundle.findOne({ _id: bundleId, '_createdBy._id': _id })
+		const bundle = await Bundle.findOne({ _id: bundleId, _createdBy: _id })
 		if (!bundle) {
 			return res.status(400).json({ error: 'No bundle found.' })
 		}
