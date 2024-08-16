@@ -5,6 +5,7 @@ import { bundleRouter } from "@modules/bundle/routes";
 import { categoryRouter } from "@modules/category/routes";
 import { discountRouter } from "@modules/discount/routes";
 import { productRouter } from "@modules/product/routes";
+import { saleRouter } from "@modules/sale/routes";
 import { Router } from "express";
 
 
@@ -16,7 +17,8 @@ router.use(verify_token)
 router.use('/category', categoryRouter)
 router.use('/discount', discountRouter)
 router.use('/bundle', bundleRouter)
-router.use('/product',productRouter )
+router.use('/product', productRouter)
+router.use('/sale', saleRouter)
 
 
 export default router
