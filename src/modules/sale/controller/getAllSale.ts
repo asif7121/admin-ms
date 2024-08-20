@@ -12,7 +12,6 @@ export const getAllSales = async (req: Request, res: Response) => {
 		// Create the match filter
 		const matchFilter: any = {
 			isDeleted: false,
-			isActive: true,
 		}
 
 		// Add search condition if search query is provided

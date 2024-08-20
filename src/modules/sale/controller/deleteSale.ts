@@ -15,7 +15,7 @@ export const deleteSale = async (req: Request, res: Response) => {
 		// Find the sale
 		const sale:any = await Sale.findById(saleId)
 		if (!sale) {
-			return res.status(404).json({ error: 'Sale not found or already deleted.' })
+			return res.status(404).json({ error: 'Sale not found.' })
 		}
         if (sale.isDeleted) {
 			return res.status(400).json({ error: 'Sale already has been deleted.' })

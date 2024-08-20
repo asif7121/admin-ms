@@ -20,11 +20,6 @@ export const getSaleDetails = async (req: Request, res: Response) => {
 		if (sale.isDeleted) {
 			return res.status(400).json({ error: 'Sale is deleted.' })
 		}
-		// Check if the sale is active
-		if (!sale.isActive) {
-			return res.status(400).json({ error: 'Sale is inactive.' })
-		}
-
 		// Return sale details
 		return res.status(200).json({
 			success: true,

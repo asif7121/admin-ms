@@ -27,30 +27,23 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		}
 
 		// Find the sale details
-		const sale: any = await Sale.findOne({ _id: saleId, isDeleted: false, isActive: true })
+		const sale: any = await Sale.findOne({ _id: saleId, isDeleted: false })
 
 		if (!sale) {
-			return res.status(404).json({ error: 'Sale not found or is inactive/deleted.' })
+			return res.status(404).json({ error: 'Sale not found or is deleted.' })
 		}
 
 		// Validate sale dates
 		const startDate = moment(sale.startDate)
 		const endDate = moment(sale.endDate)
 
-		if (!startDate.isValid() || !endDate.isValid()) {
-			return res.status(400).json({ error: 'Invalid sale dates.' })
-		}
-
-		if (startDate.isAfter(endDate)) {
-			return res.status(400).json({ error: 'Sale start date cannot be after end date.' })
-		}
 
 		if (startDate.isBefore(moment())) {
-			return res.status(400).json({ error: 'Sale start date cannot be in the past.' })
+			return res.status(400).json({ error: 'Sale has been started, cannot add products now.' })
 		}
-
-		// Apply sale to specified products
-		const { saleDiscount } = sale
+		if (endDate.isBefore(moment())) {
+			return res.status(400).json({ error: 'Sale is expired or ended.' })
+		}
 
 		const products = await Product.find({
 			_id: { $in: productIds },
@@ -70,17 +63,18 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		const updatedProducts = await Promise.all(
 			products.map(async (product) => {
 				// Check if the product is already in the sale
-				const isProductInSale = sale.products.some(
-					(saleProduct) => saleProduct.productId.toString() === product._id.toString()
-				)
+				const isProductInSale = sale.products.some((saleProduct) => {
+					return saleProduct?.productId?.toString() === product._id.toString()
+				})
+
 				if (isProductInSale) {
-					return res.status(400).json({ error: 'Product is already in the sale' })
+					return res
+						.status(400)
+						.json({ error: `Product ${product.name} is already in the sale` })
 				}
-				const discountedPrice = product.mrp - product.mrp * (saleDiscount / 100)
-				product.price = discountedPrice
-				await product.save()
 				// Add the product to the sale's products array
 				sale.products.push({
+					productId: product._id,
 					productName: product.name,
 					productMrp: product.mrp,
 					productPrice: product.price,

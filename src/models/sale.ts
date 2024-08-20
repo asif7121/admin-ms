@@ -3,10 +3,11 @@ import { Document, model, Schema } from "mongoose";
 
 
 interface ISaleItems extends Document {
-    productName: string
-    productMrp: number
-    productPrice: number
-    productCategory: Schema.Types.ObjectId
+	productId: Schema.Types.ObjectId
+	productName: string
+	productMrp: number
+	productPrice: number
+	productCategory: Schema.Types.ObjectId
 }
 
 interface ISale extends Document{
@@ -22,6 +23,7 @@ interface ISale extends Document{
     _createdBy: Schema.Types.ObjectId
 }
 const saleItemSchema = new Schema<ISaleItems>({
+	productId: { type: Schema.Types.ObjectId, required:true},
 	productName: { type: String, required: true },
 	productMrp: { type: Number, required: true },
 	productPrice: { type: Number, required: true },
@@ -51,7 +53,7 @@ const saleSchema = new Schema<ISale>(
 		},
 		isActive: {
 			type: Boolean,
-			default: true,
+			default: false,
 		},
 		isDeleted: {
 			type: Boolean,
@@ -59,7 +61,6 @@ const saleSchema = new Schema<ISale>(
 		},
 		startDate: {
 			type: Date,
-			default: Date.now,
 			required: true,
 		},
 		endDate: {

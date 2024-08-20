@@ -40,20 +40,6 @@ export const getAllProduct = async (req: Request, res: Response) => {
 						{ $skip: (pageNumber - 1) * limitNumber },
 						{ $limit: limitNumber },
 						{
-							$lookup: {
-								from: 'bundles',
-								localField: '_id',
-								foreignField: '_products',
-								as: 'bundleDetails',
-							},
-						},
-						{
-							$unwind: {
-								path: '$bundleDetails',
-								preserveNullAndEmptyArrays: true,
-							},
-						},
-						{
 							$project: {
 								_id: 1,
 								name: 1,
@@ -71,12 +57,6 @@ export const getAllProduct = async (req: Request, res: Response) => {
 									},
 								},
 								_createdBy: 1,
-								bundleDetails: {
-									_id: '$bundleDetails._id',
-									name: '$bundleDetails.name',
-									price: '$bundleDetails.price',
-									products: '$bundleDetails._products',
-								},
 							},
 						},
 					],
