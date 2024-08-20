@@ -9,6 +9,7 @@ interface IDiscount extends Document {
 	startDate: Date
 	endDate: Date
 	isDeleted: boolean
+	isActive: boolean
 	_products?: Schema.Types.ObjectId[]
 	_bundles?: Schema.Types.ObjectId[]
 	_createdBy: Schema.Types.ObjectId
@@ -34,6 +35,10 @@ const schema: Schema = new Schema(
 			required: true,
 		},
 		isDeleted: {
+			type: Boolean,
+			default: false,
+		},
+		isActive: {
 			type: Boolean,
 			default: false,
 		},

@@ -1,3 +1,4 @@
+import { Category } from "@models/category";
 import { Sale } from "@models/sale";
 import { Request, Response } from "express";
 import moment from "moment";
@@ -8,21 +9,19 @@ import { isValidObjectId } from "mongoose";
 export const createSale = async (req: Request, res: Response) => {
     try {
 		const { _id } = req.user
-		const { name, description, _category, startDate, endDate, saleDiscount } = req.body
-		if (!name) {
-			return res.status(400).json({ error: `${name} is required.` })
-		}
+		const { description, _category, startDate, endDate, saleDiscount } = req.body
+		
 		if (!description) {
-			return res.status(400).json({ error: `${description} is required.` })
+			return res.status(400).json({ error: 'description is required.' })
 		}
 		if (!_category) {
-			return res.status(400).json({ error: `${_category} is required.` })
+			return res.status(400).json({ error: '_category is required.' })
 		}
 		if (!startDate) {
-			return res.status(400).json({ error: `${startDate} is required.` })
+			return res.status(400).json({ error: 'startDate is required.' })
 		}
 		if (!endDate) {
-			return res.status(400).json({ error: `${endDate} is required.` })
+			return res.status(400).json({ error: 'endDate is required.' })
         }
         if (isNaN(saleDiscount) || saleDiscount <= 0 || saleDiscount > 100) {
 			return res
@@ -32,7 +31,7 @@ export const createSale = async (req: Request, res: Response) => {
 				})
 		}
 		if (!isValidObjectId(_category)) {
-			return res.status(400).json({ error: `${_category} is a invalid ID.` })
+			return res.status(400).json({ error: '_category is a invalid ID.' })
 		}
 		// Parse the dates using the 'yyyy-mm-dd-hh-mm-ss' format
 		const format = 'YYYY-MM-DD-HH-mm-ss'
@@ -43,27 +42,33 @@ export const createSale = async (req: Request, res: Response) => {
 		if (!start.isValid()) {
 			return res
 				.status(400)
-				.json({ error: `Invalid start date format. Use 'YYYY-MM-DD-HH-mm-ss'.` })
+				.json({ error: "Invalid start date format. Use 'YYYY-MM-DD-HH-mm-ss'" })
 		}
 		if (!end.isValid()) {
 			return res
 				.status(400)
-				.json({ error: `Invalid end date format. Use 'YYYY-MM-DD-HH-mm-ss'.` })
+				.json({ error: "Invalid end date format. Use 'YYYY-MM-DD-HH-mm-ss'" })
 		}
 
 		// Validate startDate and endDate
 		if (start.isBefore(moment())) {
-			return res.status(400).json({ error: `Start date cannot be in the past.` })
+			return res.status(400).json({ error: 'Start date cannot be in the past.' })
 		}
 		if (end.isBefore(start)) {
-			return res.status(400).json({ error: `End date cannot be before start date.` })
+			return res.status(400).json({ error: 'End date cannot be before start date.' })
 		}
-
+		const category = await Category.findById(_category)
+		if (!category) {
+			return res.status(404).json({ error: 'Category not found' })
+		}
+		if (category.isDeleted) {
+			return res.status(400).json({error:`The category ${category.name} has been deleted.`})
+		}
 		// Create the new Sale
 		const sale = new Sale({
-			name,
+			name: category.name,
 			description,
-			_category,
+			_category: category._id,
 			startDate:start.toDate(),
 			endDate: end.toDate(),
 			saleDiscount: saleDiscount || 0,

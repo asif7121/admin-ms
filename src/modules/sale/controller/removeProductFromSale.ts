@@ -18,7 +18,7 @@ export const removeProductFromSale = async (req: Request, res: Response) => {
 		}
 
 		// Find the sale details
-		const sale: any = await Sale.findOne({ _id: saleId, isDeleted: false, isActive: true })
+		const sale: any = await Sale.findOne({ _id: saleId, isDeleted: false })
 
 		if (!sale) {
 			return res.status(404).json({ error: 'Sale not found or is inactive/deleted.' })
@@ -32,7 +32,7 @@ export const removeProductFromSale = async (req: Request, res: Response) => {
 		}
 
 		// Remove the product from the sale's products array
-		sale.products = sale.products.filter((p) => !p.productId.equals(productId))
+		sale.products = sale.products.filter((p) => p.productId.toString()!==productId)
 		await sale.save()
 
 		// Restore the original price by removing the sale discount
