@@ -24,14 +24,17 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 		if (discount.isDeleted) {
 			return res.status(400).json({ error: 'This discount has been deleted.' })
 		}
+		if (discount.isActive) {
+			return res.status(400).json({ error: 'This discount has been activated, cannot add more products.' })
+		}
 		// Check if the discount is expired
-		const currentDate = moment()
+		const currentDate = moment().startOf('seconds')
 		if (currentDate.isBefore(discount.startDate) || currentDate.isAfter(discount.endDate)) {
 			return res.status(400).json({ error: 'Discount is expired..' })
 		}
 		// Filter out product IDs that are already associated with this discount
 		const newProductIds = uniqueProductIds.filter(
-			(id) => !discount._products.toString().includes(id)
+			(id) => !discount._products.some((pId) => pId.toString() === id)
 		)
 
 		if (newProductIds.length === 0) {
@@ -45,48 +48,7 @@ export const applyDiscountToProducts = async (req: Request, res: Response) => {
 							.status(404)
 							.json({ error: 'Some products not found or are not available' })
 		}
-		for (const product of products) {
-			if (product.platformDiscount !== undefined) {
-				return res
-					.status(400)
-					.json({
-						error: `This product ${product._id} already had a discount applied by admin`,
-					})
-			}
-		}
-		if (discount.type === 'mrp') {
-			await Product.updateMany(
-				{ _id: { $in: newProductIds }, isDeleted: false, isBlocked: false },
-				[
-					{ $set: { platformDiscount: discount.value } },
-					{
-						$set: {
-							price: {
-								$subtract: ['$mrp', { $multiply: ['$mrp', discount.value / 100] }],
-							},
-						},
-					},
-				]
-			)
-		} else if (discount.type === 'price') {
-			await Product.updateMany(
-				{ _id: { $in: newProductIds }, isDeleted: false, isBlocked: false },
-				[
-					{ $set: { platformDiscount: discount.value } },
-					{
-						$set: {
-							price: {
-								$subtract: [
-									'$price',
-									{ $multiply: ['$price', discount.value / 100] },
-								],
-							},
-						},
-					},
-				]
-			)
-		}
-
+		
 		discount._products = [...discount._products, ...newProductIds]
 		await discount.save()
 

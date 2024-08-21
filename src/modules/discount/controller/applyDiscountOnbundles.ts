@@ -24,9 +24,13 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 		if (discount.isDeleted) {
 			return res.status(400).json({ error: 'This discount already has been deleted.' })
 		}
-
+		if (discount.isActive) {
+			return res
+				.status(400)
+				.json({ error: 'This discount has been activated, cannot add more bundles.' })
+		}
 		// Check if the discount is expired
-		const currentDate = moment()
+		const currentDate = moment().startOf('seconds')
 		if (currentDate.isBefore(discount.startDate) || currentDate.isAfter(discount.endDate)) {
 			return res.status(400).json({ error: 'Discount is expired or not yet active' })
 		}
@@ -34,7 +38,7 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 		const uniqueBundleIds = _.uniq(bundleIds)
 		// Filter out product IDs that are already associated with this discount
 		const newBundleIds = uniqueBundleIds.filter(
-			(id) => !discount._bundles.toString().includes(id)
+			(id) => !discount._bundles.some((bId)=> bId.toString() === id)
 		)
 
 		if (newBundleIds.length === 0) {
@@ -50,49 +54,6 @@ export const applyDiscountToBundles = async (req: Request, res: Response) => {
 
 		if (bundles.length !== newBundleIds.length) {
 			return res.status(404).json({ error: 'Some bundles not found or are not available' })
-		}
-		for (const bundle of bundles) {
-			if (bundle.platformDiscount !== undefined) {
-				return res
-					.status(400)
-					.json({
-						error: `This bundle ${bundle._id} already had a discount applied by admin`,
-					})
-			}
-		}
-		if (discount.type === 'price') {
-			// Use aggregation pipeline to update bundles
-			await Bundle.updateMany(
-				{ _id: { $in: newBundleIds }, isDeleted: false, isBlocked: false },
-				[
-					{ $set: { platformDiscount: discount.value } },
-					{
-						$set: {
-							price: {
-								$subtract: [
-									'$price',
-									{ $multiply: ['$price', discount.value / 100] },
-								],
-							},
-						},
-					},
-				]
-			)
-		} else if (discount.type === 'mrp') {
-			// Use aggregation pipeline to update bundles
-			await Bundle.updateMany(
-				{ _id: { $in: newBundleIds }, isDeleted: false, isBlocked: false },
-				[
-					{ $set: { platformDiscount: discount.value } },
-					{
-						$set: {
-							price: {
-								$subtract: ['$mrp', { $multiply: ['$mrp', discount.value / 100] }],
-							},
-						},
-					},
-				]
-			)
 		}
 
 		discount._bundles = [...discount._bundles, ...newBundleIds]

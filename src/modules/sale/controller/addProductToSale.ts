@@ -34,20 +34,15 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		}
 
 		// Validate sale dates
-		const startDate = moment(sale.startDate)
 		const endDate = moment(sale.endDate)
-
-
-		if (startDate.isBefore(moment())) {
-			return res.status(400).json({ error: 'Sale has been started, cannot add products now.' })
-		}
-		if (endDate.isBefore(moment())) {
+		const now = moment().startOf('seconds')
+		if (endDate.isBefore(now)) {
 			return res.status(400).json({ error: 'Sale is expired or ended.' })
 		}
-
 		const products = await Product.find({
 			_id: { $in: productIds },
 			isDeleted: false,
+			isBlocked: false,
 			_category: sale._category,
 		})
 
@@ -59,6 +54,7 @@ export const addProductToSale = async (req: Request, res: Response) => {
 				.status(404)
 				.json({ error: "Some products does not belong to the sale's category" })
 		}
+		const errors = []
 		// Update product prices based on the saleDiscount
 		const updatedProducts = await Promise.all(
 			products.map(async (product) => {
@@ -68,18 +64,26 @@ export const addProductToSale = async (req: Request, res: Response) => {
 				})
 
 				if (isProductInSale) {
-					return res
-						.status(400)
-						.json({ error: `Product ${product.name} is already in the sale` })
+					errors.push(`Product ${product.name} is already in the sale`)
+					return null
+				}
+				let discountedPrice = product.price
+				if (sale.isActive) {
+					discountedPrice = product.mrp - (product.mrp * sale.saleDiscount) / 100
+					product.price = discountedPrice
+					product.isInSale = true
+					await product.save()
 				}
 				// Add the product to the sale's products array
 				sale.products.push({
 					productId: product._id,
 					productName: product.name,
 					productMrp: product.mrp,
-					productPrice: product.price,
+					productPrice: discountedPrice,
 					productCategory: product._category,
 				})
+				product.isInSale = true
+				await product.save()
 				return product
 			})
 		)
@@ -87,7 +91,7 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		await sale.save()
 		return res.status(200).json({
 			success: true,
-			message: `${updatedProducts.length} products added to the Sale.`,
+			errors: errors.length > 0 ? errors : undefined,
 			sale: sale,
 		})
 	} catch (error) {

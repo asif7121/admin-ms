@@ -31,7 +31,7 @@ export const deleteSale = async (req: Request, res: Response) => {
 			product.price = product.discount
 				? product.mrp - (product.mrp * product.discount) / 100
 				: product.mrp
-
+			product.isInSale = false
 			await product.save()
 		}
 
@@ -43,7 +43,7 @@ export const deleteSale = async (req: Request, res: Response) => {
 
 		return res.status(200).json({
 			success: true,
-			message: `Sale deleted and products' prices restored to original values.`,
+			message: `Sale deleted and product's prices restored to original values.`,
 		})
 	} catch (error) {
 		console.error(error)
