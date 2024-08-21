@@ -21,8 +21,8 @@ export const updateDiscount = async (req: Request, res: Response) => {
 				.json({ error: "This discount has been deleted, you cannot update it's property" })
 		}
 
-		if (!value || isNaN(value) || value < 0 || value >= 100) {
-			return res.status(400).json({ error: 'Please provide a valid value between 0 to 100' })
+		if (!value || isNaN(value) || value <= 0 || value >= 100) {
+			return res.status(400).json({ error: 'Please provide a valid value between 1 to 100' })
 		}
 		// Update related products
 		if (discount._products && discount._products.length > 0) {

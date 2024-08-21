@@ -1,10 +1,13 @@
-import { Router } from "express";
-import { addProductToSale, createSale, deleteSale, getAllSales, getSaleDetails, removeProductFromSale } from "@modules/sale/controller";
-
-
-
-
-
+import { Router } from 'express'
+import {
+	addProductToSale,
+	createSale,
+	deleteSale,
+	getAllSales,
+	getSaleDetails,
+	removeProductFromSale,
+	updateSaleDetails,
+} from '@modules/sale/controller'
 
 const router = Router()
 
@@ -14,8 +17,6 @@ router.patch('/delete', deleteSale)
 router.patch('/remove-from-sale', removeProductFromSale)
 router.get('/get', getSaleDetails)
 router.get('/get-all', getAllSales)
-
-
-
+router.patch('/update', updateSaleDetails)
 
 export const saleRouter = router

@@ -1,3 +1,4 @@
+import { updateSaleDetails } from './updateSale';
 import { removeProductFromSale } from './removeProductFromSale';
 import { getSaleDetails } from './getSale';
 import { getAllSales } from './getAllSale';
@@ -15,4 +16,5 @@ export {
     getAllSales,
     getSaleDetails,
     removeProductFromSale,
+    updateSaleDetails,
 }

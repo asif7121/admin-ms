@@ -71,7 +71,7 @@ export const createSale = async (req: Request, res: Response) => {
 			_category: category._id,
 			startDate:start.toDate(),
 			endDate: end.toDate(),
-			saleDiscount: saleDiscount || 0,
+			saleDiscount: saleDiscount,
 			_createdBy: _id, 
 		})
 

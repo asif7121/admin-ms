@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { isValidObjectId } from 'mongoose'
 import { Sale } from '@models/sale'
+import { Product } from '@models/product'
 
 export const updateSaleDetails = async (req: Request, res: Response) => {
 	try {
@@ -11,12 +12,12 @@ export const updateSaleDetails = async (req: Request, res: Response) => {
 		if (!saleId || !isValidObjectId(saleId)) {
 			return res.status(400).json({ error: 'Invalid sale ID.' })
 		}
-		
+
 		if (!description && !saleDiscount) {
 			return res.status(400).json({ error: 'No fields provided for update.' })
 		}
 		// Find the sale
-		const sale = await Sale.findOne({ _id: saleId, isDeleted: false})
+		const sale = await Sale.findOne({ _id: saleId, isDeleted: false })
 		if (!sale) {
 			return res.status(404).json({ error: 'Sale not found or is deleted.' })
 		}
@@ -33,12 +34,24 @@ export const updateSaleDetails = async (req: Request, res: Response) => {
 
 		// Validate and update saleDiscount if provided
 		if (saleDiscount !== undefined) {
-			if (typeof saleDiscount !== 'number' || saleDiscount < 0 || saleDiscount > 100) {
+			if (typeof saleDiscount !== 'number' || saleDiscount <= 0 || saleDiscount > 100) {
 				return res
 					.status(400)
-					.json({ error: 'Sale discount must be a valid number between 0 and 100.' })
+					.json({ error: 'Sale discount must be a valid number between 1 and 100.' })
 			}
 			sale.saleDiscount = saleDiscount
+			// Adjust product prices based on saleDiscount
+			for (const product of sale.products) {
+				const productDoc = await Product.findById(product.productId)
+				if (productDoc) {
+					const discountedPrice = sale.saleDiscount
+						? productDoc.mrp - (productDoc.mrp * sale.saleDiscount) / 100
+						: productDoc.price
+					productDoc.price = discountedPrice
+					product.productPrice = discountedPrice
+					await productDoc.save()
+				}
+			}
 		}
 
 		// Save the updated sale

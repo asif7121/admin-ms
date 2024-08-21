@@ -39,6 +39,7 @@ export const removeProductFromSale = async (req: Request, res: Response) => {
 		product.price = product.discount
 			? product.mrp - (product.mrp * product.discount) / 100
 			: product.mrp
+		product.isInSale = false
 		await product.save()
 
 		return res.status(200).json({

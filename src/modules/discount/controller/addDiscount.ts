@@ -4,20 +4,20 @@ import moment from 'moment'
 
 export const addDiscount = async (req: Request, res: Response) => {
 	try {
-		
 		const { _id } = req.user
 		const { type, value, startDate, endDate } = req.body
-		
+
 		if (type !== 'mrp' && type !== 'price') {
 			return res.status(400).json({ error: 'Please provide a valid discount type.' })
 		}
-		// Parse dates using 'YYYY-MM-DD' format
-		const start = moment(startDate, 'YYYY-MM-DD').startOf('day').utc()
-		const end = moment(endDate, 'YYYY-MM-DD', true).endOf('day').utc()
-		const now = moment().startOf('day')
+		// Parse the dates using the 'yyyy-mm-dd-hh-mm-ss' format
+		const format = 'YYYY-MM-DD-HH-mm-ss'
+		const start = moment(startDate, format, true)
+		const end = moment(endDate, format, true)
+		const now = moment().startOf('seconds')
 		// Validate dates
 		if (!start.isValid() || !end.isValid()) {
-			return res.status(400).json({ error: 'Invalid date format, use YYYY-MM-DD' })
+			return res.status(400).json({ error: 'Invalid date format, use YYYY-MM-DD-HH-mm-ss' })
 		}
 
 		if (start.isBefore(now)) {
@@ -32,14 +32,16 @@ export const addDiscount = async (req: Request, res: Response) => {
 		if (!value || isNaN(value) || value <= 0 || value > 100) {
 			return res
 				.status(400)
-				.json({ error: 'Provide discount value, and value must be a number between 1 and 100' })
+				.json({
+					error: 'Provide discount value, and value must be a number between 1 and 100',
+				})
 		}
 
 		const discount = await Discount.create({
 			type,
 			value,
-			startDate: start,
-			endDate: end,
+			startDate: start.toDate(),
+			endDate: end.toDate(),
 			_createdBy: _id,
 		})
 
