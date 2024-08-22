@@ -7,7 +7,6 @@ interface ISaleItems extends Document {
 	productName: string
 	productMrp: number
 	productPrice: number
-	productCategory: Schema.Types.ObjectId
 }
 
 interface ISale extends Document{
@@ -27,7 +26,6 @@ const saleItemSchema = new Schema<ISaleItems>({
 	productName: { type: String, required: true },
 	productMrp: { type: Number, required: true },
 	productPrice: { type: Number, required: true },
-	productCategory: { type: Schema.Types.ObjectId, required:true},
 }, { _id: false })
 
 

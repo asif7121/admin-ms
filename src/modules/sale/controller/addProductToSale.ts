@@ -18,11 +18,12 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
 			return res.status(400).json({ error: 'Product IDs are required.' })
 		}
-
+		const errors = []
 		// Validate each productId
 		for (const productId of productIds) {
 			if (!isValidObjectId(productId)) {
-				return res.status(400).json({ error: `Invalid product ID: ${productId}` })
+				errors.push(`Invalid product ID: ${productId}`)
+				return null
 			}
 		}
 
@@ -47,14 +48,19 @@ export const addProductToSale = async (req: Request, res: Response) => {
 		})
 
 		if (products.length === 0) {
-			return res.status(404).json({ error: 'No products found with the given IDs.' })
+			return res.status(404).json({
+				error: errors.length > 0 ? errors : 'No products found with the given IDs.',
+			})
 		}
 		if (products.length !== productIds.length) {
-			return res
-				.status(404)
-				.json({ error: "Some products does not belong to the sale's category" })
+			return res.status(404).json({
+				error:
+					errors.length > 0
+						? errors
+						: "Some products does not belong to the sale's category",
+			})
 		}
-		const errors = []
+
 		// Update product prices based on the saleDiscount
 		const updatedProducts = await Promise.all(
 			products.map(async (product) => {
@@ -80,7 +86,6 @@ export const addProductToSale = async (req: Request, res: Response) => {
 					productName: product.name,
 					productMrp: product.mrp,
 					productPrice: discountedPrice,
-					productCategory: product._category,
 				})
 				product.isInSale = true
 				await product.save()
