@@ -1,5 +1,7 @@
+import { sendSaleNotification } from "@core/sendSaleNotification";
 import { Category } from "@models/category";
 import { Sale } from "@models/sale";
+import { User } from "@models/user";
 import { Request, Response } from "express";
 import moment from "moment";
 import { isValidObjectId } from "mongoose";
@@ -10,7 +12,7 @@ export const createSale = async (req: Request, res: Response) => {
     try {
 		const { _id } = req.user
 		const { description, _category, startDate, endDate, saleDiscount } = req.body
-		
+
 		if (!description) {
 			return res.status(400).json({ error: 'description is required.' })
 		}
@@ -22,13 +24,11 @@ export const createSale = async (req: Request, res: Response) => {
 		}
 		if (!endDate) {
 			return res.status(400).json({ error: 'endDate is required.' })
-        }
-        if (isNaN(saleDiscount) || saleDiscount <= 0 || saleDiscount > 100) {
-			return res
-				.status(400)
-				.json({
-					error: 'Provide discount value that must be a number between 1 and 100',
-				})
+		}
+		if (isNaN(saleDiscount) || saleDiscount <= 0 || saleDiscount > 100) {
+			return res.status(400).json({
+				error: 'Provide discount value that must be a number between 1 and 100',
+			})
 		}
 		if (!isValidObjectId(_category)) {
 			return res.status(400).json({ error: '_category is a invalid ID.' })
@@ -51,7 +51,7 @@ export const createSale = async (req: Request, res: Response) => {
 		}
 
 		// Validate startDate and endDate
-		if (start.isBefore(moment())) {
+		if (start.isBefore(moment().startOf('seconds'))) {
 			return res.status(400).json({ error: 'Start date cannot be in the past.' })
 		}
 		if (end.isBefore(start)) {
@@ -62,28 +62,39 @@ export const createSale = async (req: Request, res: Response) => {
 			return res.status(404).json({ error: 'Category not found' })
 		}
 		if (category.isDeleted) {
-			return res.status(400).json({error:`The category ${category.name} has been deleted.`})
+			return res
+				.status(400)
+				.json({ error: `The category ${category.name} has been deleted.` })
 		}
 		// Create the new Sale
 		const sale = new Sale({
 			name: category.name,
 			description,
 			_category: category._id,
-			startDate:start.toDate(),
+			startDate: start.toDate(),
 			endDate: end.toDate(),
 			saleDiscount: saleDiscount,
-			_createdBy: _id, 
+			_createdBy: _id,
 		})
 
 		// Save the Sale to the database
 		await sale.save()
-
-		// Return success response with the newly created Sale
-		return res.status(201).json({
+		// Immediately return success response
+		res.status(201).json({
 			success: true,
 			message: 'Sale created successfully.',
 			data: sale,
 		})
+		// Fetch all sellers
+		const sellers = await User.find({
+			role: 'seller',
+			isVerified: true,
+			isBlocked: false,
+			isEmailVerified: true,
+		})
+
+		// Send email notifications to sellers
+		await sendSaleNotification(sale, category, sellers)
 	} catch (error) {
         console.log(error)
 		return res.status(500).json({ error: error.message })
